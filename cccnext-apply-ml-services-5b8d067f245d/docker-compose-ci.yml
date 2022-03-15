@@ -1,0 +1,16 @@
+apply-ml-prediction:
+  extends:
+    file: compose-base.yml
+    service: apply-ml-prediction
+
+apply-ml-training:
+  extends:
+    file: compose-base.yml
+    service: apply-ml-training
+  environment:
+   - ML_TOPIC_ARN=arn:aws:sns:us-west-2:437039948125:apply-ml-notification-ci
+
+apply-ml-utils:
+  extends:
+    file: compose-base.yml
+    service: apply-ml-utils

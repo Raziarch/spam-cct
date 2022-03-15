@@ -1,0 +1,44 @@
+apply-ml-prediction:
+  image: registry.ccctechcenter.org:5000/ccctechcenter/apply-ml-services:${IMAGE_TAG}
+  environment:
+   - ML_HOME=/opt/ccctc_spam
+   - ML_ENV=${environment}
+   - ML_BUCKET=s3://apply-pdx-${environment}-spamfilter
+   - ML_MITRE_URL=https://login.${environment}.cccmypath.org/f/jwk
+   - ML_PREDICTION_BYPASS_FLAG=False
+  entrypoint: /opt/devops/start_prediction_service.sh
+  ports:
+   - "3000:3000"
+  restart: unless-stopped
+  labels:
+    io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+    io.rancher.service.external_lb.endpoint: apply-ml-prediction-elb-${environment}
+    io.rancher.scheduler.affinity:host_label: environment=${environment},version=2
+    io.rancher.container.pull_image: always
+
+apply-ml-training:
+  image: registry.ccctechcenter.org:5000/ccctechcenter/apply-ml-services:${IMAGE_TAG}
+  environment:
+   - ML_HOME=/opt/ccctc_spam
+   - ML_ENV=${environment}
+   - ML_BUCKET=s3://apply-pdx-${environment}-spamfilter
+  entrypoint: /opt/devops/start_training_service.sh
+  restart: "no"
+  labels:
+    io.rancher.container.start_once: "true"
+    io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+    io.rancher.scheduler.affinity:host_label: environment=${environment},service=apply-ml-training
+    io.rancher.container.pull_image: always
+
+apply-ml-utils:
+  image: registry.ccctechcenter.org:5000/ccctechcenter/apply-ml-services:${IMAGE_TAG}
+  environment:
+   - ML_ENV=${environment}
+  entrypoint: /opt/devops/ml_remove_disconnected_host.sh
+  restart: "no"
+  labels:
+    io.rancher.container.start_once: "true"
+    io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+    io.rancher.scheduler.affinity:host_label: environment=${environment},version=2
+    io.rancher.container.pull_image: always
+    com.socialengine.rancher-cron.schedule: 0 0 * * * *

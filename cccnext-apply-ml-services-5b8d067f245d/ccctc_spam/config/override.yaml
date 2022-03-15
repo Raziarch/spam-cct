@@ -1,0 +1,10 @@
+override: True
+override_tagging: True
+time_limit:
+    active: True
+    threshold: 90
+email_blacklist:
+    active: True
+    period_blacklist: False
+    address_blacklist: True
+    top_domain_blacklist: True

@@ -1,0 +1,16 @@
+################################################################
+# Copyright (C) 2017 SeyVu, Inc; support@seyvu.com
+#
+# The file contents can not be copied and/or distributed
+# without the express permission of SeyVu, Inc
+################################################################
+
+weekly:
+    enable: True
+    n_dates: 6
+    lag: 1
+monthly:
+    enable: True
+    n_dates: 7
+    lag: 1
+    buffer: 5

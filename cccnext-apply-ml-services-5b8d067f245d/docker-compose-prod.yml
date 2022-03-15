@@ -1,0 +1,18 @@
+apply-ml-prediction:
+  extends:
+    file: compose-base.yml
+    service: apply-ml-prediction
+  environment:
+   - ML_MITRE_URL=https://login.cccmypath.org/f/jwk
+
+apply-ml-training:
+  extends:
+    file: compose-base.yml
+    service: apply-ml-training
+  environment:
+   - ML_TOPIC_ARN=arn:aws:sns:us-west-2:599199943077:apply-ml-notification-prod
+
+apply-ml-utils:
+  extends:
+    file: compose-base.yml
+    service: apply-ml-utils

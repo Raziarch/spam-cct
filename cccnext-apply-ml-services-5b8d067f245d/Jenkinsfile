@@ -1,0 +1,164 @@
+#!groovy
+@Library('jenkinsLib') _
+currentBuild.displayName = "#${env.BUILD_NUMBER}-${branch_name}"
+pipeline {
+    agent { node { label 'build-slave' } }
+    environment {
+        service = "apply-ml-services"
+        rollback_on_failure = true
+        port = "3000"
+        protocol = "http"
+        health = ""
+        channel = "#ml-infiniti-poc"
+    }
+    parameters {
+        booleanParam(
+            defaultValue: true,
+            description: 'deploy the ml-prediction-service',
+            name: 'deploy_ml_prediction_service')
+        booleanParam(
+            defaultValue: false,
+            description: 'Deploy the the ml-training-service',
+            name: 'deploy_ml_training_service')
+        booleanParam(
+            defaultValue: false,
+            description: 'Deploy the the ml-utils-service',
+            name: 'deploy_ml_utils_service')
+        string(
+           defaultValue: '',
+           description: 'override the the image tag used for this release. If set, no build will occur and the image will just be pulled from the registry',
+           name: 'tag_override')
+        choice(
+            choices: '\nci\ntest\npilot\nprod',
+            description: 'override the target environment for deployment',
+            name: 'env_override')
+    }
+
+    stages {
+        stage('init') {
+            steps {
+                script {
+                    env.deploy_tag = params.tag_override == '' ? ceBuild.getDeployTag(env.service, env.BRANCH_NAME) : params.tag_override
+                    env.environment = !params.env_override ? ceEnv.getEnvironmentFromBranchName(env.BRANCH_NAME, env.service) : params.env_override
+                    env.url = "prediction.${env.environment}.pdx.cccapply.int"
+
+                    if (!env.environment) { error "Unsupported branch name: " + env.BRANCH_NAME }
+
+                    switch (env.environment) {
+                        case "ci":      aws_env = "apply-ci"; break
+                        case "test":    aws_env = "apply-test"; break
+                        case "pilot":   aws_env = "apply-pilot"; break
+                        case "prod":    aws_env = "apply-prod"; break
+                    }
+
+                    ceEnv.setSSMCreds(aws_env)
+                    env.rancher_key=ceEnv.getSSMParameter("rancher-key-${aws_env}")
+                    env.rancher_pass=ceEnv.getSSMParameter("rancher-pass-${aws_env}")
+                    env.ml_client_secret = ceEnv.getSSMParameter("ml-prediction-client-secret-${env.environment}")
+
+                    env.rancher_stack = "${env.service}-${env.environment}"
+                    // env.deploy_tag = ceBuild.getDeployTag(env.service, env.BRANCH_NAME)
+
+                    ceEnv.unsetSSMCreds()
+                    ceEnv.setSSMCreds() //shared infrastructure parameters will still be stored in Prod account
+                    env.NEW_RELIC_LICENSE_KEY = (env.environment ==~ /pilot|prod/) ? ceEnv.getSSMParameter("new-relic-license-key") : "invalid-newrelic-key"
+                    ceEnv.unsetSSMCreds()
+                    echo "DEBUG: env.environment: ${env.environment}"
+                    echo "DEBUG: env.rancher_key: ${env.rancher_key}"
+                    echo "DEBUG: env.rancher_stack: ${env.rancher_stack}"
+                    echo "DEBUG: env.deploy_tag: ${env.deploy_tag}"
+                    echo "DEBUG: env.url: ${env.url}"
+                    echo "DEBUG: env.NEW_RELIC_LICENSE_KEY: ${env.NEW_RELIC_LICENSE_KEY}"
+                }
+            }
+        }
+        stage('build') {
+            when { expression { env.environment != "prod" } } //skip build + publish for prod (master branch)
+            steps {
+                script {
+                    ceBuild.mvnBuild("docker build -t ccctechcenter/${env.service} .") //just runs the script we give it, and sets build status
+                    if (env.deploy_tag != null) {
+                        ceBuild.dockerPush("ccctechcenter/${env.service}", env.deploy_tag)
+                    } else {
+                        currentBuild.result = "UNSTABLE"
+                        error "Skipping publish and deploy steps: unable to determine a deploy_tag. Insure you have pushed a valid branch name pattern"
+                    }
+                    dir("ccctc_spam") {
+                        ceBuild.sonarScanPython("apply-ml-services")
+                    }
+                }
+            }
+        }
+        stage('deploy') {
+            steps {
+                script {
+                    if ((env.environment == "pilot" || env.environment == "prod") && !ceEnv.isAuthorized("admin-deploy")) {
+                        ceEnv.requestAuth(env.service, env.environment, env.channel, "admin-deploy")
+                    }
+                    lock_resource = "${env.service}-${env.environment}-rancher"
+                    lock(resource: lock_resource) {
+                        if (env.deploy_ml_prediction_service != "false") {
+                            ceDeploy.runDeploy(env.rollback_on_failure, env.rancher_stack, "apply-ml-prediction", env.environment, env.deploy_tag, env.url, env.port, env.protocol, env.health, env.rancher_key, env.rancher_pass, env.channel)
+                        }
+                        if (env.deploy_ml_training_service != "false") {
+                            ceDeploy.runDeploy(false, env.rancher_stack, "apply-ml-training", env.environment, env.deploy_tag, env.url, env.port, env.protocol, env.health, env.rancher_key, env.rancher_pass, env.channel)
+                        }
+                        if (env.deploy_ml_utils_service != "false") {
+                            ceDeploy.runDeploy(env.rollback_on_failure, env.rancher_stack, "apply-ml-utils", env.environment, env.deploy_tag, env.url, env.port, env.protocol, env.health, env.rancher_key, env.rancher_pass, env.channel)
+                        }
+                    }
+                }
+            }
+        }
+        stage('postman test') {
+            steps {
+                script {
+                  print "DEBUG: running postman tests in $environment environment"
+                  runPostmanTests environment: environment, test_folder: "prediction-svc", basename: "ml-prediction-svc", image_tag: "latest", env_var_map: [client_secret: env.ml_client_secret]
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            script {
+              if (env.deploy_ml_prediction_service != "false") {
+                ceDeploy.slackNotify(env.channel, "danger", "Failure", "apply-ml-prediction", env.environment, env.url, env.deploy_tag)
+              }
+              if (env.deploy_ml_training_service != "false") {
+                ceDeploy.slackNotify(env.channel, "warning", "manual validation required", "apply-ml-training", env.environment, env.url, env.deploy_tag)
+              }
+              if (env.deploy_ml_utils_service != "false") {
+                ceDeploy.slackNotify(env.channel, "danger", "Failure", "apply-ml-utils", env.environment, env.url, env.deploy_tag)
+              }
+            }
+        }
+        success {
+            script {
+              if (env.deploy_ml_prediction_service != "false") {
+                ceDeploy.slackNotify(env.channel, "good", "Success", "apply-ml-prediction", env.environment, env.url, env.deploy_tag)
+              }
+              if (env.deploy_ml_training_service != "false") {
+                ceDeploy.slackNotify(env.channel, "good", "Success", "apply-ml-training", env.environment, env.url, env.deploy_tag)
+              }
+              if (env.deploy_ml_utils_service != "false") {
+                ceDeploy.slackNotify(env.channel, "good", "Success", "apply-ml-utils", env.environment, env.url, env.deploy_tag)
+              }
+            }
+        }
+        unstable {
+            script {
+              if (env.deploy_ml_prediction_service != "false") {
+                ceDeploy.slackNotify(env.channel, "warning", "had test failures", "apply-ml-prediction", env.environment, env.url, env.deploy_tag)
+              }
+              if (env.deploy_ml_training_service != "false") {
+                ceDeploy.slackNotify(env.channel, "warning", "had test failures", "apply-ml-training", env.environment, env.url, env.deploy_tag)
+              }
+              if (env.deploy_ml_utils_service != "false") {
+                ceDeploy.slackNotify(env.channel, "warning", "had test failures", "apply-ml-utils", env.environment, env.url, env.deploy_tag)
+              }
+
+            }
+        }
+    }
+}

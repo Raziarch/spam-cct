@@ -1,0 +1,2 @@
+* * * * * root . /opt/devops/project_env.sh; /opt/devops/ml_sync_model_files_from_s3.sh >> /var/log/cron.log 2>&1
+# An empty line is required at the end of this file for a valid cron file.

@@ -1,0 +1,540 @@
+################################################################
+# Copyright (C) 2017 SeyVu, Inc; support@seyvu.com
+#
+# The file contents can not be copied and/or distributed
+# without the express permission of SeyVu, Inc
+################################################################
+
+
+# Base Configuration
+config:
+    extension: ccctc_spam
+    prefix: &pre ccctc_spam
+    model_pickle_file: !!python/object/apply:string.join [[*pre, _model.pkl], '']
+    raw_pickle_file: !!python/object/apply:string.join [[*pre, _extracted.pkl], '']
+    transform_pickle_file: !!python/object/apply:string.join [[*pre, _transformed.pkl], '']
+    track_results: True
+
+
+# Load Workflow Configuration
+load:
+    # Extraction Configuration
+    extract:
+        output_formats: #[csv]
+        force_datatypes: True
+        base_features:
+            app_id: int
+            birthdate: datetime
+            firstname: str
+            middlename: str
+            lastname: str
+            suffix: str
+            mainphone: str
+            mainphone_ext: str
+            streetaddress1: str
+            streetaddress2: str
+            preferred_firstname: str
+            preferred_lastname: str
+            preferred_middlename: str
+            otherfirstname: str
+            otherlastname: str
+            othermiddlename: str
+            secondphone: str
+            secondphone_ext: str
+            ssn: str
+            email: str
+            ccc_id: str
+            status: str
+            college_id: str
+            term_id: int
+            major_id: int
+            intended_major: str
+            edu_goal: str
+            highest_edu_level: str
+            consent_indicator: bool
+            app_lang: str
+            esignature: bool
+            ack_fin_aid: bool
+            fin_aid_ref: bool
+            confirmation: str
+            sup_page_code: str
+            last_page: str
+            city: str
+            postalcode: str
+            state: str
+            nonusaprovince: str
+            country: str
+            non_us_address: bool
+            perm_city: str
+            perm_postalcode: str
+            perm_state: str
+            perm_nonusaprovince: str
+            perm_country: str
+            address_same: bool
+            enroll_status: str
+            hs_edu_level: str
+            hs_comp_date: datetime
+            higher_edu_level: str
+            higher_comp_date: datetime
+            hs_not_attended: bool
+            cahs_graduated: bool
+            cahs_3year: bool
+            hs_name: str
+            hs_city: str
+            hs_state: str
+            hs_country: str
+            hs_cds: str
+            hs_ceeb: str
+            hs_not_listed: bool
+            home_schooled: bool
+            college_count: int
+            hs_attendance: int
+            coenroll_confirm: bool
+            gender: str
+            pg_rel: str
+            pg1_edu: str
+            pg2_edu: str
+            pg_edu_mis: str
+            under19_ind: bool
+            dependent_status: str
+            race_ethnic: str
+            hispanic: bool
+            race_group: str
+            salt: str
+            citizenship_status: str
+            visa_type: str
+            no_documents: bool
+            military_status: str
+            military_discharge_date: datetime
+            military_home_state: str
+            military_home_country: str
+            military_ca_stationed: bool
+            military_legal_residence: str
+            ca_res_2_years: bool
+            ca_date_current: datetime
+            ca_not_arrived: bool
+            ca_college_employee: bool
+            ca_school_employee: bool
+            ca_seasonal_ag: bool
+            ca_foster_youth: bool
+            ca_outside_tax: bool
+            ca_outside_tax_year: datetime
+            ca_outside_voted: bool
+            ca_outside_voted_year: datetime
+            ca_outside_college: bool
+            ca_outside_college_year: datetime
+            ca_outside_lawsuit: bool
+            ca_outside_lawsuit_year: datetime
+            res_status: str
+            res_status_change: bool
+            res_prev_date: datetime
+            adm_ineligible: int
+            elig_ab540: bool
+            res_area_a: int
+            res_area_b: int
+            res_area_c: int
+            res_area_d: int
+            experience: int
+            recommend: int
+            comments: str
+            comfortable_english: bool
+            financial_assistance: bool
+            tanf_ssi_ga: bool
+            foster_youths: bool
+            athletic_intercollegiate: bool
+            athletic_intramural: bool
+            athletic_not_interested: bool
+            academic_counseling: bool
+            basic_skills: bool
+            calworks: bool
+            career_planning: bool
+            child_care: bool
+            counseling_personal: bool
+            dsps: bool
+            eops: bool
+            esl: bool
+            health_services: bool
+            housing_info: bool
+            employment_assistance: bool
+            online_classes: bool
+            reentry_program: bool
+            scholarship_info: bool
+            student_government: bool
+            testing_assessment: bool
+            transfer_info: bool
+            tutoring_services: bool
+            veterans_services: bool
+            integrity_fg_01: bool
+            integrity_fg_02: bool
+            integrity_fg_03: bool
+            integrity_fg_04: bool
+            integrity_fg_11: bool
+            integrity_fg_47: bool
+            integrity_fg_48: bool
+            integrity_fg_49: bool
+            integrity_fg_50: bool
+            integrity_fg_51: bool
+            integrity_fg_52: bool
+            integrity_fg_53: bool
+            integrity_fg_54: bool
+            integrity_fg_55: bool
+            integrity_fg_56: bool
+            integrity_fg_57: bool
+            integrity_fg_58: bool
+            integrity_fg_59: bool
+            integrity_fg_60: bool
+            integrity_fg_61: bool
+            integrity_fg_62: bool
+            integrity_fg_63: bool
+            integrity_fg_70: bool
+            integrity_fg_80: bool
+            col1_ceeb: str
+            col1_cds: str
+            col1_not_listed: bool
+            col1_name: str
+            col1_city: str
+            col1_state: str
+            col1_country: str
+            col1_start_date: datetime
+            col1_end_date: datetime
+            col1_degree_date: datetime
+            col1_degree_obtained: str
+            col2_ceeb: str
+            col2_cds: str
+            col2_not_listed: bool
+            col2_name: str
+            col2_city: str
+            col2_state: str
+            col2_country: str
+            col2_start_date: datetime
+            col2_end_date: datetime
+            col2_degree_date: datetime
+            col2_degree_obtained: str
+            col3_ceeb: str
+            col3_cds: str
+            col3_not_listed: bool
+            col3_name: str
+            col3_city: str
+            col3_state: str
+            col3_country: str
+            col3_start_date: datetime
+            col3_end_date: datetime
+            col3_degree_date: datetime
+            col3_degree_obtained: str
+            col4_ceeb: str
+            col4_cds: str
+            col4_not_listed: bool
+            col4_name: str
+            col4_city: str
+            col4_state: str
+            col4_country: str
+            col4_start_date: datetime
+            col4_end_date: datetime
+            col4_degree_date: datetime
+            col4_degree_obtained: str
+            college_name: str
+            district_name: str
+            term_code: str
+            term_description: str
+            major_code: str
+            major_description: str
+            tstmp_submit: datetime
+            tstmp_create: datetime
+            tstmp_update: datetime
+            foster_youth_status: str
+            foster_youth_preference: bool
+            foster_youth_mis: bool
+            foster_youth_priority: bool
+            tstmp_download: datetime
+            address_validation: str
+            zip4: str
+            perm_address_validation: str
+            perm_zip4: str
+            discharge_type: str
+            college_expelled_summary: bool
+            col1_expelled_status: bool
+            col2_expelled_status: bool
+            col3_expelled_status: bool
+            col4_expelled_status: bool
+            integrity_flags: str
+            rdd: datetime
+            # transgender: bytea
+            ssn_type: str
+            military_stationed_ca_ed: bool
+            integrity_fg_65: bool
+            integrity_fg_64: bool
+            ip_address: str
+            campaign1: str
+            campaign2: str
+            campaign3: str
+            ssn_exception: bool
+            integrity_fg_71: bool
+            ssn_no: bool
+            completed_eleventh_grade: bool
+            grade_point_average: str
+            highest_english_course: int
+            highest_english_grade: str
+            highest_math_course_taken: int
+            highest_math_taken_grade: str
+            highest_math_course_passed: int
+            highest_math_passed_grade: str
+            integrity_fg_30: bool
+            hs_cds_full: str
+            col1_cds_full: str
+            col2_cds_full: str
+            col3_cds_full: str
+            col4_cds_full: str
+            no_perm_address_homeless: bool
+            no_mailing_address_homeless: bool
+            ccgi_token: str
+            homeless_youth: bool
+            integrity_fg_40: bool
+            term_start: datetime
+            term_end: datetime
+            cip_code: str
+            major_category: str
+            confirmed_fraud: bool
+    # Transform Configuration
+    transform:
+        pii:
+            pii_na_transform:
+                - birthdate
+                - firstname
+                - middlename
+                - lastname
+                - suffix
+                - mainphone
+                - mainphone_ext
+                - streetaddress1
+                - streetaddress2
+                - preferred_firstname
+                - preferred_lastname
+                - preferred_middlename
+                - otherfirstname
+                - otherlastname
+                - othermiddlename
+                - secondphone
+                - secondphone_ext
+                - ssn
+            enable: True
+            thresh: 0.3
+            rank_features:
+                - email_domain
+                - short_domain
+                - area_code
+                - ip0
+                - ip1
+                - ip2
+                - ip3
+                - city
+                - state
+        cardinality_thresh:
+        y_column: confirmed_fraud
+        id_column: app_id
+        ts_column: tstmp_submit
+        output_formats:  #[csv]
+        column_encoder_map:
+        unique_bound:
+        augment:
+            exclude_race_gender: False
+            expand_dates: True
+        trim:
+            trim_filter_regex:
+                # Removing timestamps, dates
+                - '^tstmp|_date$'
+                # col*_cds, col*_ceeb should capture this effectively; Removes college_name as well
+                - '^col.*_name$|^col.*_city$|^col.*_state$|^col.*_country$'
+                # Integrity Flags; Base fields should capture this
+                - '^integrity_'
+                # Campaign Fields
+                - '^campaign*$'
+            trim_features:
+                # ID columns not needed and don't add value
+                - confirmation
+                - ccc_id
+                # hs_cds, hs_ceeb should cover this
+                - hs_name
+                - hs_city
+                - hs_state
+                - hs_country
+                # college_id should cover these
+                - district_name
+                # relevant IDs should cover these
+                - term_description
+                - major_description
+                # Zip should capture this
+                - city
+                - perm_city
+                # Term ID/Code should capture this
+                - term_start
+                - term_end
+                - term_code # Removed in Phase 1.5
+                # Not useful
+                - signature
+                - salt
+                - last_page
+                - sup_page_code
+                # Internal Fields
+                - ccgi_token
+                # Based on Phase 2 Analysis
+                - ip_address
+                - email
+                - email_domain
+                - email_stripped
+                - status
+                # pii high cardinality
+                - birthdate
+                - firstname
+                - middlename
+                - lastname
+                - suffix
+                - mainphone
+                - mainphone_ext
+                - streetaddress1
+                - streetaddress2
+                - preferred_firstname
+                - preferred_lastname
+                - preferred_middlename
+                - otherfirstname
+                - otherlastname
+                - othermiddlename
+                - secondphone
+                - secondphone_ext
+                - ssn
+                - ip0
+                - ip1
+                - ip2
+                - ip3
+            trim_filter_exceptions: []
+        feature_scaling: False
+        fillna_numeric: -100
+        fillna_categorical: missing
+        anonymized_email: False
+        tag_override: False
+        app_duration_threshold: 90
+        debug: False
+        blacklist_feature: True
+    prepare:
+        pickle_data: False
+
+# Train Workflow Configuration
+train:
+    retrain: True
+    split_size: 0.2
+    split_method: random
+    split_by_feature: college_id
+    split_by_time: 2018-01-01
+    run_kfold: False
+    n_splits: 3
+    shuffle: True
+    debug: False
+    # Attributes for noise study experiments
+    feature_noise: False # Add noise to selected features in train
+    noise_percentage: 1 # Percentage of data to add noise to
+    noise_level: 1
+    noise_features:
+        - app_duration
+        - submit_hour
+        - zeros
+        - postalcode
+        - major_id
+        - intended_major
+
+# Test Workflow Configuration
+test:
+    split_size: 0
+    split_method: random
+    split_by_feature: college_id
+    split_by_time: 2018-02-01
+    probability_threshold: 0.3
+    debug: False
+    # Attributes for noise study experiments
+    feature_noise: False # Add noise to selected features in train
+    noise_percentage: 1 # Percentage of data to add noise to
+    noise_level: 1
+    noise_features:
+        - app_duration
+        - submit_hour
+        - zeros
+        - postalcode
+        - major_id
+        - intended_major
+
+
+# Parameter Optimization Configuration
+param_search:
+    # Grid Search Parameters
+    grid_search:
+        scoring: recall
+        refit: True
+    # Random Search Parameters
+    rand_search:
+        scoring: recall
+        refit: True
+        n_iter: 1000
+
+
+# Model Configuration
+model:
+    # High Level Options
+    miscopts:
+        model_type: [XGBClassifier]
+        run_method: static
+        result_type: probability
+        load_best_params: False
+    # Models and Parameters
+    modelopts:
+        XGBClassifier:
+            static:
+                max_depth: 5
+                n_estimators: 600
+#                subsample: 0.5
+                colsample_bytree: 0.5
+                colsample_bylevel: 0.7
+#                reg_lambda: 3
+#                reg_alpha: 3
+            search:
+                n_estimators: [100, 300, 500]
+                max_depth: [5, 10, 15]
+                subsample: [0.3, 0.5, 0.7]
+                colsample_bytree: [0.3, 0.5, 0.7]
+                colsample_bylevel: [0.5, 0.7, 1.0]
+                reg_lambda: [1, 3, 5]
+                reg_alpha: [1, 3, 5]
+                learning_rate: [0.01, 0.1, 0.2]
+
+
+# Evaluation Metrics Configuration
+evaluate:
+    # noise_ratio: 0.5 # 50% Noise to Signal Ratio
+    noise_ratio:
+    train:
+        learning_curve: False
+        validation_curve: False
+        plot_feature_importance: False
+        num_feature_importance: 20
+        plot_probability_distribution: False
+    test:
+        log_results: False
+        plot_probability_distribution: False
+
+
+# Prediction Options Configuration
+predict:
+    debug: False
+
+# Production Configuration
+production:
+    freeze: True
+    test_mode: False
+    debug: False
+
+# API configuration
+api:
+    enable_auth: True
+
+report:
+    enable: False
+    n_dates: 6
+    lag: 1
+    keep_count: True
